@@ -232,13 +232,10 @@ For production deployment, consider:
 4. Write tests for new functionality
 5. Submit a pull request
 
-## License
-
-This project is open source and available under the MIT License.
 
 ## Support
 
-For questions or issues, please create an issue in the project repository or contact the maintainer.
+For questions or issues, please create an issue in the project repository .
 
 ---
 
