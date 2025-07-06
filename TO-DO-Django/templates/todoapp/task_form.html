@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Edit Task{% else %}New Task{% endif %} - Django To-Do
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    {% if object %}
+                        <i class="bi bi-pencil-square"></i>
+                        Edit Task
+                    {% else %}
+                        <i class="bi bi-plus-circle"></i>
+                        Create New Task
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Title Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <i class="bi bi-card-text"></i> 
+                            Task Title <span class="text-danger">*</span>
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.title.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            <i class="bi bi-text-paragraph"></i> 
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Optional: Provide additional details about the task.
+                        </div>
+                    </div>
+                    
+                    <!-- Due Date Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                            <i class="bi bi-calendar-event"></i> 
+                            Due Date
+                        </label>
+                        {{ form.due_date }}
+                        {% if form.due_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.due_date.errors.0 }}
+                            </div>
+                        {% endif %}
+                        {% if form.due_date.help_text %}
+                            <div class="form-text">
+                                {{ form.due_date.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Complete Field (only show when editing) -->
+                    {% if object %}
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.complete }}
+                                <label for="{{ form.complete.id_for_label }}" class="form-check-label">
+                                    <i class="bi bi-check-circle"></i>
+                                    Mark as completed
+                                </label>
+                            </div>
+                            {% if form.complete.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.complete.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'task-list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i>
+                            Back to Tasks
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if object %}
+                                <i class="bi bi-check-square"></i>
+                                Update Task
+                            {% else %}
+                                <i class="bi bi-plus-circle"></i>
+                                Create Task
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Task Preview (when editing) -->
+        {% if object %}
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-eye"></i>
+                        Task Preview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="form-check me-3">
+                            {% if object.complete %}
+                                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                            {% else %}
+                                <i class="bi bi-circle text-muted fs-4"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="{% if object.complete %}text-decoration-line-through text-muted{% endif %}">
+                                {{ object.title }}
+                            </h6>
+                            {% if object.description %}
+                                <p class="text-muted small mb-2 {% if object.complete %}text-decoration-line-through{% endif %}">
+                                    {{ object.description }}
+                                </p>
+                            {% endif %}
+                            <div class="small text-muted">
+                                <span class="me-3">
+                                    <i class="bi bi-calendar-plus"></i>
+                                    Created: {{ object.created|date:"M d, Y H:i" }}
+                                </span>
+                                {% if object.due_date %}
+                                    <span class="{% if object.is_overdue %}text-danger fw-bold{% endif %}">
+                                        <i class="bi bi-calendar-event"></i>
+                                        Due: {{ object.due_date|date:"M d, Y H:i" }}
+                                        {% if object.is_overdue %}
+                                            <span class="badge bg-danger ms-1">OVERDUE</span>
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set minimum date to today for due date field
+    document.addEventListener('DOMContentLoaded', function() {
+        var dueDateField = document.querySelector('input[type="datetime-local"]');
+        if (dueDateField) {
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = (now.getMonth() + 1).toString().padStart(2, '0');
+            var day = now.getDate().toString().padStart(2, '0');
+            var hours = now.getHours().toString().padStart(2, '0');
+            var minutes = now.getMinutes().toString().padStart(2, '0');
+            
+            var minDateTime = year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+            dueDateField.setAttribute('min', minDateTime);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}My Tasks - Django To-Do{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <i class="bi bi-list-task display-4"></i>
+                        <h4>{{ total_tasks }}</h4>
+                        <p class="mb-0">Total Tasks</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check-circle display-4"></i>
+                        <h4>{{ completed_tasks }}</h4>
+                        <p class="mb-0">Completed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <i class="bi bi-clock display-4"></i>
+                        <h4>{{ pending_tasks }}</h4>
+                        <p class="mb-0">Pending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <i class="bi bi-exclamation-triangle display-4"></i>
+                        <h4>{{ overdue_tasks }}</h4>
+                        <p class="mb-0">Overdue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tasks Header -->
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-list-task"></i>
+                My Tasks
+            </h2>
+            <a href="{% url 'task-create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                New Task
+            </a>
+        </div>
+    </div>
+    
+    <!-- Tasks List -->
+    <div class="col-12">
+        {% if tasks %}
+            {% for task in tasks %}
+                <div class="card task-card mb-3 {% if task.complete %}completed-task{% endif %} {% if task.is_overdue %}overdue-task{% endif %}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-start">
+                                    <!-- Task Status Toggle -->
+                                    <div class="form-check me-3">
+                                        <a href="{% url 'task-toggle' task.pk %}" class="btn btn-link p-0">
+                                            {% if task.complete %}
+                                                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                            {% else %}
+                                                <i class="bi bi-circle text-muted fs-4"></i>
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                    
+                                    <!-- Task Details -->
+                                    <div>
+                                        <h5 class="card-title mb-1 {% if task.complete %}text-decoration-line-through text-muted{% endif %}">
+                                            {{ task.title }}
+                                        </h5>
+                                        {% if task.description %}
+                                            <p class="card-text text-muted mb-2 {% if task.complete %}text-decoration-line-through{% endif %}">
+                                                {{ task.description|truncatewords:20 }}
+                                            </p>
+                                        {% endif %}
+                                        
+                                        <!-- Task Meta Info -->
+                                        <div class="small text-muted">
+                                            <span class="me-3">
+                                                <i class="bi bi-calendar-plus"></i>
+                                                Created: {{ task.created|date:"M d, Y H:i" }}
+                                            </span>
+                                            {% if task.due_date %}
+                                                <span class="me-3 {% if task.is_overdue %}text-danger fw-bold{% endif %}">
+                                                    <i class="bi bi-calendar-event"></i>
+                                                    Due: {{ task.due_date|date:"M d, Y H:i" }}
+                                                    {% if task.is_overdue %}
+                                                        <span class="badge bg-danger ms-1">OVERDUE</span>
+                                                    {% endif %}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'task-update' task.pk %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-pencil"></i>
+                                        Edit
+                                    </a>
+                                    <a href="{% url 'task-delete' task.pk %}" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                        Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav aria-label="Tasks pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="bi bi-clipboard-x display-1 text-muted"></i>
+                <h3 class="mt-4 text-muted">No tasks yet</h3>
+                <p class="text-muted">Start by creating your first task!</p>
+                <a href="{% url 'task-create' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle"></i>
+                    Create Your First Task
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-hide alerts after 5 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+</script>
+{% endblock %}
